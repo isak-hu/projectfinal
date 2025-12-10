@@ -21,7 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "GPIOinputs.h"
+#include "SPIhandler.h"
+#include "test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,14 +56,12 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI3_Init(void);
 /* USER CODE BEGIN PFP */
-void SPITEST(void);
-void SPIinit(void);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint8_t test[3] = {0xff,0xff,0xff};
 /* USER CODE END 0 */
 
 /**
@@ -103,8 +103,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  SPIinit();
-	  SPITEST();
+	 SPIinit();
+	 SPIshow_state(test);
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -184,7 +186,7 @@ static void MX_SPI3_Init(void)
   hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi3.Init.NSS = SPI_NSS_SOFT;
-  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -263,18 +265,18 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(_595_Enable_GPIO_Port, _595_Enable_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pins : LD2_Pin _595_Reset_Pin */
   GPIO_InitStruct.Pin = LD2_Pin|_595_Reset_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : TL1_Car_Pin */
+  GPIO_InitStruct.Pin = TL1_Car_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(TL1_Car_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : _595_STCP_Pin */
   GPIO_InitStruct.Pin = _595_STCP_Pin;
@@ -283,6 +285,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(_595_STCP_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : TL2_Car_Pin TL3_Car_Pin */
+  GPIO_InitStruct.Pin = TL2_Car_Pin|TL3_Car_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /*Configure GPIO pin : _595_Enable_Pin */
   GPIO_InitStruct.Pin = _595_Enable_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -290,27 +298,40 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(_595_Enable_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : TL4_Car_Pin */
+  GPIO_InitStruct.Pin = TL4_Car_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(TL4_Car_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PL1_Switch_Pin */
+  GPIO_InitStruct.Pin = PL1_Switch_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(PL1_Switch_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PL2_Switch_Pin */
+  GPIO_InitStruct.Pin = PL2_Switch_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(PL2_Switch_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-void SPIinit(){
-	HAL_GPIO_WritePin(_595_Enable_GPIO_Port, _595_Enable_Pin, RESET);
-	HAL_GPIO_WritePin(_595_Reset_GPIO_Port, _595_Reset_Pin, SET);
-	HAL_GPIO_WritePin(_595_STCP_GPIO_Port, _595_STCP_Pin, RESET);
-
-}
-
-void SPITEST(){
-	uint8_t array[3] = {0xFF,0xFF,0xFF};
-
-	HAL_SPI_Transmit(&hspi3,array,3, 50);
-	HAL_GPIO_WritePin(_595_STCP_GPIO_Port, _595_STCP_Pin, SET);
-	HAL_GPIO_WritePin(_595_STCP_GPIO_Port, _595_STCP_Pin, RESET);
-}
-
 
 /* USER CODE END 4 */
 

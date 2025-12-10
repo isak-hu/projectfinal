@@ -1,0 +1,3 @@
+../Core/Src/test.c:17:6:Reset_Variables	1
+../Core/Src/test.c:26:6:Test_PL1_Switch	2
+../Core/Src/test.c:36:6:Test_PL2_Switch	2

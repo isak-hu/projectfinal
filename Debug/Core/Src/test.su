@@ -1,3 +1,5 @@
-../Core/Src/test.c:17:6:Reset_Variables	4	static
-../Core/Src/test.c:26:6:Test_PL1_Switch	8	static
-../Core/Src/test.c:36:6:Test_PL2_Switch	8	static
+../Core/Src/test.c:21:6:Reset_Variables	4	static
+../Core/Src/test.c:30:6:Test_PL1_Switch	8	static
+../Core/Src/test.c:40:6:Test_PL2_Switch	8	static
+../Core/Src/test.c:55:6:test_led_state	8	static
+../Core/Src/test.c:77:6:GoToState	4	static

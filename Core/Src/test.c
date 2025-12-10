@@ -7,6 +7,10 @@
 
 #include "test.h"
 
+
+
+// button testing
+
 uint8_t PL1_passed = 0;
 uint8_t PL2_passed = 0;
 uint8_t TL1_Car_passed = 0;
@@ -44,6 +48,33 @@ void Test_PL2_Switch(void){
 }
 
 
+
+
+// State led testing
+// goes throug all the possoble states
+void test_led_state(){
+
+	while(1){
+		SPIshow_state(lights_init);
+		HAL_Delay(1000);
+		SPIshow_state(pending_1);
+		HAL_Delay(1000);
+		SPIshow_state(pending_0);
+		HAL_Delay(1000);
+		SPIshow_state(G2R_1);
+		HAL_Delay(1000);
+		SPIshow_state(G2R_0);
+		HAL_Delay(1000);
+		SPIshow_state(Ped_Walk);
+		HAL_Delay(1000);
+		SPIshow_state(R2G);
+		HAL_Delay(1000);
+	}
+}
+
+// go to state
+
+void GoToState(){}
 
 
 

@@ -25,6 +25,7 @@
 #include "SPIhandler.h"
 #include "test.h"
 #include "statemachine.h"
+#include "statemachine2.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,9 +109,10 @@ int main(void)
 
 	 while(1){
 
-		  Taffic_StateMachine();
+		 Car_StateMachine();
 
 	 }
+
 
 
 

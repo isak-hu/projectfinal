@@ -9,44 +9,12 @@
 
 // pirvate variabel def BEGIN
 
-// all in ms
-const uint16_t toggleFreq = 500;
-const uint16_t pedestrianDelay = 10000;
-const uint16_t walkingDelay = 10000;
-const uint16_t orangeDelay = 2000;
-
-const uint16_t GreenToOrangeDelay = pedestrianDelay - orangeDelay; // because of R1.3
-
 // timekeepers for the delays and toggling
 volatile uint32_t state_start_time = 0;		//when it when into current state
 volatile uint32_t toggled_at = 0;			//when it toggeeld last
 volatile uint8_t  indicator_state = 0;
 
 // private variabel def END
-
-
-
-
-// led arrys for the diffrent states to feed to SPI handler
-
-//init state aka (TL GREEN INIT)
-uint8_t lights_init[3] = {0x20,0x0c,0x00};
-
-//pending state aka (PED_PENDING)
-uint8_t pending_1[3] = {0x20,0x2c,0x00}; //indicator on
-uint8_t pending_0[3] = {0x20,0x0c,0x00}; //indicator off
-
-//Green to Red so when TL is orange aka (TL_ORANGE_G2R)
-uint8_t G2R_1[3] = {0x10,0x2a,0x00}; //indicator on
-uint8_t G2R_0[3] = {0x10,0x0a,0x00}; //indicator off
-
-//Ped_walk aka (PED_WALK)
-uint8_t Ped_Walk[3] = {0x08,0x11,0x00};
-
-//Red to Green so when TL is orange aka (TL_ORANGE_R2G)
-uint8_t R2G[3] = {0x10,0x0a,0x00};
-
-
 
 
 // defining the states
@@ -64,7 +32,7 @@ typedef enum {
 
 TrafficState current_state = TL_GREEN_INIT;
 
-void Taffic_StateMachine(void){
+void Pedestrian_StateMachine(void){
 
 	switch(current_state){
 

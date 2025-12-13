@@ -2,7 +2,7 @@
  * SPIhandler.c
  *
  *  Created on: Dec 9, 2025
- *      Author: isak2
+ *      Author: Yichao Hu
  */
 #include "main.h"
 extern SPI_HandleTypeDef hspi3;
@@ -45,6 +45,29 @@ uint8_t H2Vorange[3] = {0x0A,0x01,0x02};
 
 
 
+
+// the LED arrays for task 3
+
+uint8_t V_G[3] = {0x21, 0x0c, 0x11};
+
+uint8_t V_G_pending_0[3] = {0x21, 0x0c, 0x11};
+uint8_t V_G_pending_1[3] = {0x21, 0x2c, 0x11};
+
+uint8_t V_O[3] = {0x11, 0x0c, 0x11};
+
+uint8_t V_O_pending_0[3] = {0x11, 0x0c, 0x11};
+uint8_t V_O_pending_1[3] = {0x11, 0x2c, 0x11};
+
+
+uint8_t H_G[3] = {0x0c, 0x11, 0x0c};
+
+uint8_t H_G_pending_0[3] = {0x0c, 0x11, 0x0c};
+uint8_t H_G_pending_1[3] = {0x0c, 0x11, 0x2c};
+
+uint8_t H_O[3] = {0x0a, 0x11, 0x0a};
+
+uint8_t H_O_pending_0[3] = {0x0a, 0x11, 0x0a};
+uint8_t H_O_pending_1[3] = {0x0a, 0x11, 0x2a};
 
 
 

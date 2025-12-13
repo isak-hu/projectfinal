@@ -1,2 +1,2 @@
-../Core/Src/SPIhandler.c:51:6:SPIinit	1
-../Core/Src/SPIhandler.c:58:6:SPIshow_state	1
+../Core/Src/SPIhandler.c:74:6:SPIinit	1
+../Core/Src/SPIhandler.c:81:6:SPIshow_state	1

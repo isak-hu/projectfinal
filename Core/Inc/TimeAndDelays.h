@@ -2,7 +2,7 @@
  * TimeAndDelays.h
  *
  *  Created on: 12 dec. 2025
- *      Author: isak
+ *      Author: Yichao Hu
  */
 
 #ifndef INC_TIMEANDDELAYS_H_

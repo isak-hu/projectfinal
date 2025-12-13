@@ -49,6 +49,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				else TL4_Car_var = 0;
 	}
 
-	}
+}
+// a very cruisal  funtion used to read the intal carpossion when first running the code since the variables only change when a intreups happens
+void Car_Starting_positions(){
+    HAL_GPIO_EXTI_Callback(TL1_Car_Pin);
+    HAL_GPIO_EXTI_Callback(TL2_Car_Pin);
+    HAL_GPIO_EXTI_Callback(TL3_Car_Pin);
+    HAL_GPIO_EXTI_Callback(TL4_Car_Pin);
+}
 
 

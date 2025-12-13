@@ -2,7 +2,7 @@
  * test.c
  *
  *  Created on: Dec 9, 2025
- *      Author: isak2
+ *      Author: Yichao Hu
  */
 
 #include "test.h"
@@ -81,6 +81,34 @@ void test_led_state2(){
 		HAL_Delay(1000);
 		SPIshow_state(H2Vorange);
 		HAL_Delay(1000);
+
+	}
+}
+
+void test_led_state3(){
+
+	while(1){
+		SPIshow_state(V_G);
+		HAL_Delay(1000);
+		SPIshow_state(V_G_pending_0);
+		HAL_Delay(1000);
+		SPIshow_state(V_G_pending_1);
+		HAL_Delay(1000);
+		SPIshow_state(V_O_pending_0);
+		HAL_Delay(1000);
+		SPIshow_state(V_O_pending_1);
+		HAL_Delay(1000);
+		SPIshow_state(H_G);
+		HAL_Delay(1000);
+		SPIshow_state(H_G_pending_0);
+		HAL_Delay(1000);
+		SPIshow_state(H_G_pending_1);
+		HAL_Delay(1000);
+		SPIshow_state(H_O_pending_0);
+		HAL_Delay(1000);
+		SPIshow_state(H_O_pending_1);
+		HAL_Delay(1000);
+
 
 	}
 }

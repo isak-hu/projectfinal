@@ -2,7 +2,7 @@
  * test.h
  *
  *  Created on: Dec 9, 2025
- *      Author: isak2
+ *      Author: Yichao Hu
  */
 
 #ifndef INC_TEST_H_
@@ -24,6 +24,7 @@ void Test_PL1_Switch(void);// testing PL1_Switch
 void Test_PL2_Switch(void);
 void test_led_state(void); // dispalyina all possible states
 void test_led_state2(void);
+void test_led_state3(void);
 void test_CarOnLane(void);
 //funtion prototype END
 

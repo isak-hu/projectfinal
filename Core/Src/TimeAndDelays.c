@@ -2,7 +2,7 @@
  * TimeAndDelays.c
  *
  *  Created on: 12 dec. 2025
- *      Author: isak
+ *      Author: Yichao Hu
  */
 // file used for all the specied delays and max times etc
 

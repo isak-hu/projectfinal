@@ -14,6 +14,7 @@
 
 //funtion prototye BEGIN
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+void Car_Starting_positions(void);
 //funtion prototype END
 
 // variable declaration BEGIN

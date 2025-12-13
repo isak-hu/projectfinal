@@ -2,7 +2,7 @@
  * statemachine2.h
  *
  *  Created on: 12 dec. 2025
- *      Author: isak
+ *      Author: Yichao Hu
  */
 
 #ifndef SRC_STATEMACHINE2_H_

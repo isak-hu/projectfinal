@@ -2,7 +2,7 @@
  * statemachine.h
  *
  *  Created on: Dec 9, 2025
- *      Author: isak2
+ *      Author: Yichao Hu
  */
 
 #ifndef INC_STATEMACHINE_H_

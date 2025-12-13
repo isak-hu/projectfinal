@@ -106,12 +106,9 @@ int main(void)
   while (1)
   {
 	 SPIinit();
+	 Car_Starting_positions();
 
-	 while(1){
-
-		 Car_StateMachine();
-
-	 }
+	 test_led_state3();
 
 
 

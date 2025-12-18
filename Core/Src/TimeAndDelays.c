@@ -9,10 +9,11 @@
 #include "TimeAndDelays.h"
 
 // all in ms
-const uint16_t toggleFreq = 500;
-const uint16_t pedestrianDelay = 10000;
-const uint16_t walkingDelay = 10000;
-const uint16_t orangeDelay = 2000;
-const uint16_t GreenToOrangeDelay = pedestrianDelay - orangeDelay; // because of R1.3
-const uint16_t greenDelay = 10000;
-const uint16_t redDelayMax = 10000;
+const uint16_t toggleFreq = 500; // how fast the indcator light toggles
+const uint16_t pedestrianDelay = 10000; // how long the pederian have to wait before he can walk
+const uint16_t walkingDelay = 10000; // how long the pedstrian light stays green
+const uint16_t orangeDelay = 2000; // how long the light says orange
+const uint16_t GreenToOrangeDelay = pedestrianDelay - orangeDelay; // will be Pedetrian in RTOS
+const uint16_t greenDelay = 10000; // if there is no cars in any direction switch active lane svery green delay
+const uint16_t redDelayMax = 10000;// the maxium time a car has to wait for green ligtht
+const uint16_t CarGreenToOrangeDelay = greenDelay - orangeDelay; //Will be Green in RTOS

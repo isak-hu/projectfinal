@@ -26,19 +26,19 @@ extern uint8_t Hgreen[3];
 extern uint8_t H2Vorange[3];
 
 //for the task 3 leds
-extern uint8_t V_G[3];
-extern uint8_t V_G_pending_0[3];
-extern uint8_t V_G_pending_1[3];
-extern uint8_t V_O[3];
-extern uint8_t V_O_pending_0[3];
-extern uint8_t V_O_pending_1[3];
+extern uint8_t indicatorbit;
 
-extern uint8_t H_G[3];
-extern uint8_t H_G_pending_0[3];
-extern uint8_t H_G_pending_1[3];
-extern uint8_t H_O[3];
-extern uint8_t H_O_pending_0[3];
-extern uint8_t H_O_pending_1[3];
+
+extern uint8_t Shownstate[3];
+
+extern const uint8_t V_Orange_R2G[3];
+extern uint8_t V_Green[3];
+extern uint8_t V_Orange_G2R[3];
+
+extern uint8_t H_Orange_R2G[3];
+extern uint8_t H_Green[3];
+extern uint8_t H_Orange_G2R[3];
+
 
 // variable declaration END
 void SPIshow_state(uint8_t*);

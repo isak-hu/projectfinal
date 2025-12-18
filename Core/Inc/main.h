@@ -90,6 +90,8 @@ void Error_Handler(void);
 #define PL1_Switch_EXTI_IRQn EXTI15_10_IRQn
 #define _595_SHCP_Pin GPIO_PIN_10
 #define _595_SHCP_GPIO_Port GPIOC
+#define Disp_CS_Pin GPIO_PIN_11
+#define Disp_CS_GPIO_Port GPIOC
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
 #define _595_DS_Pin GPIO_PIN_5

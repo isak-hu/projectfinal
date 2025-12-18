@@ -4,5 +4,5 @@
 ../Core/Src/test.c:53:6:test_led_state	1
 ../Core/Src/test.c:73:6:test_led_state2	1
 ../Core/Src/test.c:88:6:test_led_state3	1
-../Core/Src/test.c:117:6:test_CarOnLane	1
-../Core/Src/test.c:123:6:GoToState	1
+../Core/Src/test.c:110:6:test_CarOnLane	1
+../Core/Src/test.c:116:6:GoToState	1

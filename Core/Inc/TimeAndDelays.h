@@ -16,6 +16,7 @@ extern const uint16_t GreenToOrangeDelay;
 extern const uint16_t greenDelay;
 extern const uint16_t redDelayMax;
 extern const uint16_t CarGreenToOrangeDelay;
+extern const uint16_t Reddelay;
 
 
 #endif /* INC_TIMEANDDELAYS_H_ */

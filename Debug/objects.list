@@ -1,6 +1,7 @@
 "./Core/Src/GPIOinputs.o"
 "./Core/Src/SPIhandler.o"
 "./Core/Src/TimeAndDelays.o"
+"./Core/Src/UARThandler.o"
 "./Core/Src/freertos.o"
 "./Core/Src/gpio.o"
 "./Core/Src/main.o"

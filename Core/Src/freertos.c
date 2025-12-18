@@ -45,7 +45,7 @@ typedef enum {
     STATE_ORANGE_R2G,  // Red to Green transition
     STATE_PED_WALK     // Pedestrian crossing active
 } LightState;
-LightState current = STATE_GREEN;
+
 
 /* USER CODE END PTD */
 
@@ -54,7 +54,8 @@ LightState current = STATE_GREEN;
 #define TOGGLE_EVT_1     (1 << 0)
 #define TOGGLE_EVT_2     (1 << 1)
 #define REDMAX_EVT    	 (1 << 2)
-#define ORANGE_EVT    	 (1 << 3)
+#define V_ORANGE_EVT     (1 << 3)
+#define H_ORANGE_EVT     (1 << 7)
 #define GREEN_EVT    	 (1 << 4)
 #define PED_EVT     	 (1 << 5)
 #define SHOW_EVT		 (1 << 6)
@@ -69,13 +70,8 @@ LightState current = STATE_GREEN;
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-uint32_t toggle_bit;  // global variable used for timer argument
+static uint32_t toggle_evt_value;/* USER CODE END Variables */
 
-
-
-
-
-/* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
@@ -114,10 +110,10 @@ osTimerId_t GreenHandle;
 const osTimerAttr_t Green_attributes = {
   .name = "Green"
 };
-/* Definitions for Orange */
-osTimerId_t OrangeHandle;
-const osTimerAttr_t Orange_attributes = {
-  .name = "Orange"
+/* Definitions for V_Orange */
+osTimerId_t V_OrangeHandle;
+const osTimerAttr_t V_Orange_attributes = {
+  .name = "V_Orange"
 };
 /* Definitions for RedMax */
 osTimerId_t RedMaxHandle;
@@ -138,6 +134,11 @@ const osTimerAttr_t Pedestrian_attributes = {
 osTimerId_t ToggleTimerHandle;
 const osTimerAttr_t ToggleTimer_attributes = {
   .name = "ToggleTimer"
+};
+/* Definitions for H_Orange */
+osTimerId_t H_OrangeHandle;
+const osTimerAttr_t H_Orange_attributes = {
+  .name = "H_Orange"
 };
 /* Definitions for UART_Mutex */
 osMutexId_t UART_MutexHandle;
@@ -161,11 +162,12 @@ void StartVertialTask(void *argument);
 void StartHorizontalTask(void *argument);
 void StartActuatorTask(void *argument);
 void GreenDone(void *argument);
-void OrangeDone(void *argument);
+void V_OrangeDone(void *argument);
 void RedMaxDone(void *argument);
 void WalkingDone(void *argument);
 void PedestrianDone(void *argument);
 void ToggleTimerCallback(void *argument);
+void H_OrangeDone(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -188,7 +190,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the semaphores(s) */
   /* creation of ImGreenNow */
-  ImGreenNowHandle = osSemaphoreNew(1, 1, &ImGreenNow_attributes);
+  ImGreenNowHandle = osSemaphoreNew(1, 0, &ImGreenNow_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -198,8 +200,8 @@ void MX_FREERTOS_Init(void) {
   /* creation of Green */
   GreenHandle = osTimerNew(GreenDone, osTimerOnce, NULL, &Green_attributes);
 
-  /* creation of Orange */
-  OrangeHandle = osTimerNew(OrangeDone, osTimerOnce, NULL, &Orange_attributes);
+  /* creation of V_Orange */
+  V_OrangeHandle = osTimerNew(V_OrangeDone, osTimerOnce, NULL, &V_Orange_attributes);
 
   /* creation of RedMax */
   RedMaxHandle = osTimerNew(RedMaxDone, osTimerOnce, NULL, &RedMax_attributes);
@@ -211,7 +213,11 @@ void MX_FREERTOS_Init(void) {
   PedestrianHandle = osTimerNew(PedestrianDone, osTimerOnce, NULL, &Pedestrian_attributes);
 
   /* creation of ToggleTimer */
-  ToggleTimerHandle = osTimerNew(ToggleTimerCallback, osTimerPeriodic, (void*) &toggle_bit, &ToggleTimer_attributes);
+  ToggleTimerHandle = osTimerNew(ToggleTimerCallback, osTimerPeriodic, &toggle_evt_value, &ToggleTimer_attributes);
+
+
+  /* creation of H_Orange */
+  H_OrangeHandle = osTimerNew(H_OrangeDone, osTimerOnce, NULL, &H_Orange_attributes);
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -279,7 +285,9 @@ void StartDefaultTask(void *argument)
 void StartVertialTask(void *argument)
 {
   /* USER CODE BEGIN StartVertialTask */
- osSemaphoreAcquire(ImGreenNowHandle, osWaitForever);
+	LightState Vcurrent = STATE_GREEN;
+	osSemaphoreRelease(ImGreenNowHandle);
+	osSemaphoreAcquire(ImGreenNowHandle, osWaitForever);
 
  uint32_t events;
 
@@ -290,7 +298,7 @@ void StartVertialTask(void *argument)
 	  uint8_t V_ACTIVE = ActiveCarOnLane(Veritical);
 	  uint8_t H_ACTIVE = ActiveCarOnLane(Horizontal);
 
-	  switch(current){
+	  switch(Vcurrent){
 
 	  case STATE_GREEN:
 	      memcpy(Shownstate, V_Green, 3);
@@ -309,7 +317,7 @@ void StartVertialTask(void *argument)
 	      if ((V_ACTIVE == 0) && (H_ACTIVE == 1)) {  // imeadiate state change stop all the timers
 	          osTimerStop(RedMaxHandle);
 	          osTimerStop(GreenHandle);
-	          current = STATE_ORANGE_G2R;
+	          Vcurrent = STATE_ORANGE_G2R;
 	      }
 	      else if ((V_ACTIVE == 1) && (H_ACTIVE == 0)) { // stay green forever so reset all the timers so it never triggers a state change
 	          osTimerStop(RedMaxHandle);
@@ -324,7 +332,7 @@ void StartVertialTask(void *argument)
 	          PL2_switch_var = 0;
 	          osTimerStop(RedMaxHandle);
 	          osTimerStop(GreenHandle);
-	          current = STATE_PENDING;
+	          Vcurrent = STATE_PENDING;
 	      }
 
 	      // Check timer/event notifications without blocking
@@ -332,10 +340,10 @@ void StartVertialTask(void *argument)
 	      if (notified == pdTRUE) {
 
 	          if (events & GREEN_EVT) {
-	              current = STATE_ORANGE_G2R;
+	              Vcurrent = STATE_ORANGE_G2R;
 	          }
 	          else if (events & REDMAX_EVT) {
-	              current = STATE_ORANGE_G2R;
+	              Vcurrent = STATE_ORANGE_G2R;
 	          }
 
 	      }
@@ -349,14 +357,15 @@ void StartVertialTask(void *argument)
 	      xTaskNotify(ActuatorTaskHandle, SHOW_EVT, eSetBits);
 
 
-	      if (!IsActive(OrangeHandle)) {
-	          osTimerStart(OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+	      if (!IsActive(V_OrangeHandle)) {
+	          osTimerStart(V_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
 	      }
 
 	      xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
 
-	      if (events & ORANGE_EVT) {
-	          current = STATE_RED;               // Transition to RED
+	      if (events & V_ORANGE_EVT) {
+	    	  osTimerStop(V_OrangeHandle);
+	          Vcurrent = STATE_RED;               // Transition to RED
 	        // Give turn to other task
 	      }
 	  break;
@@ -366,23 +375,28 @@ void StartVertialTask(void *argument)
 
 	  case STATE_RED:
 		  osSemaphoreRelease(ImGreenNowHandle);
-          current = STATE_ORANGE_R2G;
+          Vcurrent = STATE_ORANGE_R2G;
 		  osThreadYield();
           osSemaphoreAcquire(ImGreenNowHandle, osWaitForever);
 
 		  break;
 
 	  case STATE_ORANGE_R2G:
+
+		  xTaskNotifyStateClear(NULL);
+		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, 0);
+
           memcpy(Shownstate, V_Orange_R2G, 3);
           xTaskNotify(ActuatorTaskHandle, SHOW_EVT, eSetBits);
-	      if (!IsActive(OrangeHandle)) {
-	          osTimerStart(OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+	      if (!IsActive(V_OrangeHandle)) {
+	          osTimerStart(V_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
 	      }
 
 	      xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
 
-	      if (events & ORANGE_EVT) {
-	          current = STATE_GREEN;
+	      if (events & V_ORANGE_EVT) {
+	    	  osTimerStop(V_OrangeHandle);
+	          Vcurrent = STATE_GREEN;
 	      }
 
 
@@ -390,7 +404,7 @@ void StartVertialTask(void *argument)
 
 	  case STATE_PENDING:
 
-		  toggle_bit =  TOGGLE_EVT_2;
+		  toggle_evt_value =  TOGGLE_EVT_2;
 		   if (!IsActive(ToggleTimerHandle)) {
 		       osTimerStart(ToggleTimerHandle, pdMS_TO_TICKS(toggleFreq));
 		    }
@@ -402,13 +416,14 @@ void StartVertialTask(void *argument)
 
 	      if (events & PED_EVT) {
 	    	  memcpy(Shownstate, V_Orange_R2G, 3);
-		      if (!IsActive(OrangeHandle)) {
-		          osTimerStart(OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+		      if (!IsActive(V_OrangeHandle)) {
+		          osTimerStart(V_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
 
 		      }
 		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
-	      if (events & ORANGE_EVT) {
-	    	  current = STATE_PED_WALK;
+	      if (events & V_ORANGE_EVT) {
+	    	  osTimerStop(V_OrangeHandle);
+	    	  Vcurrent = STATE_PED_WALK;
 
 		      }
 	      }
@@ -424,7 +439,7 @@ void StartVertialTask(void *argument)
 		  }
     	  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
     	  if (events & WALK_EVT) {
-		    	current = STATE_ORANGE_R2G;
+		    	Vcurrent = STATE_ORANGE_R2G;
 
     	  }
 
@@ -453,7 +468,7 @@ void StartHorizontalTask(void *argument)
   /* USER CODE BEGIN StartHorizontalTask */
   /* Infinite loop */
 	osSemaphoreAcquire(ImGreenNowHandle, osWaitForever);
-	current = STATE_ORANGE_R2G;
+    LightState Hcurrent = STATE_ORANGE_R2G;
 	uint32_t events;// Start with its own R2G
   for(;;)
   {
@@ -461,7 +476,7 @@ void StartHorizontalTask(void *argument)
 	  uint8_t V_ACTIVE = ActiveCarOnLane(Veritical);
 	  uint8_t H_ACTIVE = ActiveCarOnLane(Horizontal);
 
-	  switch(current){
+	  switch(Hcurrent){
 
 	  case STATE_GREEN:
 	      memcpy(Shownstate, H_Green, 3);
@@ -480,7 +495,7 @@ void StartHorizontalTask(void *argument)
 	      if ((H_ACTIVE == 0) && (V_ACTIVE == 1)) {  // imeadiate state change stop all the timers
 	          osTimerStop(RedMaxHandle);
 	          osTimerStop(GreenHandle);
-	          current = STATE_ORANGE_G2R;
+	          Hcurrent = STATE_ORANGE_G2R;
 	      }
 	      else if ((H_ACTIVE == 1) && (V_ACTIVE == 0)) { // stay green forever so reset all the timers so it never triggers a state change
 	          osTimerStop(RedMaxHandle);
@@ -495,7 +510,7 @@ void StartHorizontalTask(void *argument)
 	          PL1_switch_var = 0;
 	          osTimerStop(RedMaxHandle);
 	          osTimerStop(GreenHandle);
-	          current = STATE_PENDING;
+	          Hcurrent = STATE_PENDING;
 	      }
 
 	      // Check timer/event notifications without blocking
@@ -503,10 +518,10 @@ void StartHorizontalTask(void *argument)
 	      if (notified == pdTRUE) {
 
 	          if (events & GREEN_EVT) {
-	              current = STATE_ORANGE_G2R;
+	              Hcurrent = STATE_ORANGE_G2R;
 	          }
 	          else if (events & REDMAX_EVT) {
-	              current = STATE_ORANGE_G2R;
+	              Hcurrent = STATE_ORANGE_G2R;
 	          }
 
 	      }
@@ -521,14 +536,15 @@ void StartHorizontalTask(void *argument)
 	      xTaskNotify(ActuatorTaskHandle, SHOW_EVT, eSetBits);
 
 
-	      if (!IsActive(OrangeHandle)) {
-	          osTimerStart(OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+	      if (!IsActive(H_OrangeHandle)) {
+	          osTimerStart(H_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
 	      }
 
 	      xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
 
-	      if (events & ORANGE_EVT) {
-	          current = STATE_RED;               // Transition to RED
+	      if (events & H_ORANGE_EVT) {
+	    	  osTimerStop(H_OrangeHandle);
+	          Hcurrent = STATE_RED;               // Transition to RED
 
 	      }
 	  break;
@@ -540,7 +556,8 @@ void StartHorizontalTask(void *argument)
           // Wait until horizontal finishes its green cycle
 
 		  osSemaphoreRelease(ImGreenNowHandle);
-          current = STATE_ORANGE_R2G;
+
+          Hcurrent = STATE_ORANGE_R2G;
 		  osThreadYield();
           osSemaphoreAcquire(ImGreenNowHandle, osWaitForever);
           // Now vertical can do its own R2G logic
@@ -550,29 +567,30 @@ void StartHorizontalTask(void *argument)
 
 	  case STATE_ORANGE_R2G:
 
+		  xTaskNotifyStateClear(NULL);
+		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, 0);
+
 	      memcpy(Shownstate, H_Orange_R2G, 3);
 	      xTaskNotify(ActuatorTaskHandle, SHOW_EVT, eSetBits);
 
 
-	      if (!IsActive(OrangeHandle)) {
-	          osTimerStart(OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+	      if (!IsActive(H_OrangeHandle)) {
+	          osTimerStart(H_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
 	      }
 
-	      notified = xTaskNotifyWait(0, 0xFFFFFFFF, &events, pdMS_TO_TICKS(10));
-	      if (notified == pdTRUE) {
+	      xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
 
-	          if (events & ORANGE_EVT) {
-	        	  current = STATE_GREEN;
-	          }
+	      if (events & H_ORANGE_EVT) {
+	    	  osTimerStop(H_OrangeHandle);
+	          Hcurrent = STATE_GREEN;
 
-	          }
-
+	      }
 		  break;
 
 	  case STATE_PENDING:
 
 
-		  toggle_bit =  TOGGLE_EVT_1;
+		  toggle_evt_value =  TOGGLE_EVT_1;
 		   if (!IsActive(ToggleTimerHandle)) {
 		       osTimerStart(ToggleTimerHandle, pdMS_TO_TICKS(toggleFreq));
 		    }
@@ -584,13 +602,14 @@ void StartHorizontalTask(void *argument)
 
 	      if (events & PED_EVT) {
 	    	  memcpy(Shownstate, H_Orange_R2G, 3);
-		      if (!IsActive(OrangeHandle)) {
-		          osTimerStart(OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+		      if (!IsActive(H_OrangeHandle)) {
+		          osTimerStart(H_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
 
 		      }
 		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
-	      if (events & ORANGE_EVT) {
-	    	  current = STATE_PED_WALK;
+	      if (events & H_ORANGE_EVT) {
+	    	  osTimerStop(H_OrangeHandle);
+	    	  Hcurrent = STATE_PED_WALK;
 
 		      }
 	      }
@@ -607,7 +626,7 @@ void StartHorizontalTask(void *argument)
 		  }
     	  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
     	  if (events & WALK_EVT) {
-		    	current = STATE_ORANGE_R2G;
+		    	Hcurrent = STATE_ORANGE_R2G;
 
     	  }
 
@@ -662,13 +681,12 @@ void GreenDone(void *argument)
   /* USER CODE END GreenDone */
 }
 
-/* OrangeDone function */
-void OrangeDone(void *argument)
+/* V_OrangeDone function */
+void V_OrangeDone(void *argument)
 {
-  /* USER CODE BEGIN OrangeDone */
-	xTaskNotify(VertialTaskHandle, ORANGE_EVT, eSetBits);
-	xTaskNotify(HorizontalTaskHandle, ORANGE_EVT, eSetBits);
-  /* USER CODE END OrangeDone */
+  /* USER CODE BEGIN V_OrangeDone */
+	xTaskNotify(VertialTaskHandle,V_ORANGE_EVT,eSetBits);
+  /* USER CODE END V_OrangeDone */
 }
 
 /* RedMaxDone function */
@@ -707,6 +725,14 @@ void ToggleTimerCallback(void *argument)
 	uint32_t bit_to_toggle = *(uint32_t *)argument;
 	xTaskNotify(ActuatorTaskHandle,bit_to_toggle,eSetBits);
   /* USER CODE END ToggleTimerCallback */
+}
+
+/* H_OrangeDone function */
+void H_OrangeDone(void *argument)
+{
+  /* USER CODE BEGIN H_OrangeDone */
+	xTaskNotify(HorizontalTaskHandle,H_ORANGE_EVT,eSetBits);
+  /* USER CODE END H_OrangeDone */
 }
 
 /* Private application code --------------------------------------------------*/

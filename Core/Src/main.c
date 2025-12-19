@@ -100,10 +100,14 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_SPI3_Init();
+
+
   /* USER CODE BEGIN 2 */
-  SPIinit();
-  Car_Starting_positions();
-  RuntimeConfig_init();
+
+
+  SPIinit();					//as the name suggest it
+  Car_Starting_positions(); 	//as the name suggest it
+  RuntimeConfig_init();         //gets ready to recive the uart message
 
 
 

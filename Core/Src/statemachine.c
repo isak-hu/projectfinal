@@ -11,7 +11,7 @@
 // pirvate variabel def BEGIN
 
 // timekeepers for the delays and toggling
-volatile uint32_t state_start_time = 0;		//when it when into current state
+volatile uint32_t state_start_time = 0;		// A makeshift timer so count when it when into current state
 volatile uint32_t toggled_at = 0;			//when it toggeeld last
 volatile uint8_t  indicator_state = 0;
 
@@ -29,34 +29,30 @@ typedef enum {
 
 
 
-// the state machine it self
+// the state machine itself
 
 TrafficState current_state = TL_GREEN_INIT;
 
 void Pedestrian_StateMachine(void){
 
 	switch(current_state){
-
+		// TL:G, PL:R, TGL: off
 		case TL_GREEN_INIT:
 
 			SPIshow_state(lights_init);
-
-
+			// waits until the button pressed
 			if (PL2_switch_var == 1){
-
 				PL2_switch_var = 0;
-
+			// starts the timer before going into the new state
 				state_start_time = HAL_GetTick();
 				toggled_at = HAL_GetTick();
 				indicator_state = 0;
 				current_state = PED_PENDING;
-
 			}
-
-			break;
-
+		break;
 
 
+		// TL:G, PL:R, TGL: on
 		case PED_PENDING:
 
 			// toggling the indicator light
@@ -69,47 +65,44 @@ void Pedestrian_StateMachine(void){
 
 			        SPIshow_state(pending_0);
 			        indicator_state = 0;
-
 			    }
-
 				toggled_at = HAL_GetTick();
-
 				}
-				// checking for trassition
-			if (HAL_GetTick() - state_start_time >= GreenToOrangeDelay){
+
+
+			// checking if the timer have surpassed the Delay
+			if (HAL_GetTick() - state_start_time >= pedestrianDelay-orangeDelay){
 				state_start_time = HAL_GetTick();
 				current_state = TL_ORANGE_G2R;
 			}
 			break;
 
 
-
+		// TL:O, PL:R, TGL: on
 		case TL_ORANGE_G2R:
 
+			// toggling the indicator light
 			if (HAL_GetTick() - toggled_at >= toggleFreq){
 
 				if (indicator_state == 0) {
-
 					SPIshow_state(G2R_1);
 					indicator_state = 1;
 				} else {
-
 					SPIshow_state(G2R_0);
 					indicator_state = 0;
-
 				}
-
 				toggled_at = HAL_GetTick();
-
 				}
 
+
+			// checking if the timer have surpassed the Delay
 			if (HAL_GetTick() - state_start_time >= orangeDelay){
 				state_start_time = HAL_GetTick();
 				current_state = PED_WALK;
 
 			}
 			break;
-
+		// TL:R, PL:G, TGL: off
 		case PED_WALK:
 
 			SPIshow_state(Ped_Walk);
@@ -117,9 +110,10 @@ void Pedestrian_StateMachine(void){
 			if (HAL_GetTick()- state_start_time >= walkingDelay){
 				state_start_time = HAL_GetTick();
 				current_state = TL_ORANGE_R2G;
-
 			}
 			break;
+
+		// TL:O, PL:R, TGL: off
 		case TL_ORANGE_R2G:
 			SPIshow_state(R2G);
 			if (HAL_GetTick()- state_start_time >= orangeDelay){

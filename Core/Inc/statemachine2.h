@@ -17,7 +17,7 @@
 // variable declaration BEGIN
 
 
-extern const uint8_t Veritical;
+extern const uint8_t Vertical;
 extern const uint8_t Horizontal;
 // variable declaration END
 

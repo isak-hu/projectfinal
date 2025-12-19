@@ -3,6 +3,6 @@
 ../Core/Src/test.c:39:6:Test_PL2_Switch	2
 ../Core/Src/test.c:53:6:test_led_state	1
 ../Core/Src/test.c:73:6:test_led_state2	1
-../Core/Src/test.c:88:6:test_led_state3	1
-../Core/Src/test.c:110:6:test_CarOnLane	1
-../Core/Src/test.c:116:6:GoToState	1
+../Core/Src/test.c:92:6:test_led_state3	1
+../Core/Src/test.c:114:6:test_CarOnLane	1
+../Core/Src/test.c:120:6:GoToState	1

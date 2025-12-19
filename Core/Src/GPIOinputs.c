@@ -12,9 +12,11 @@ volatile uint32_t PL1_Last_Interrupt = 0;
 volatile uint32_t PL2_Last_Interrupt = 0;
 #define DEBOUNCE_TIME 100 // in ms
 
+
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-
+//basic button debounce
 	if(GPIO_Pin == PL1_Switch_Pin) {
 
 		uint32_t current_time = HAL_GetTick();

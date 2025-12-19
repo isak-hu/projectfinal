@@ -11,7 +11,7 @@
 
 
 // variavles used for the ActiveCarOnLane funtion
-const uint8_t Veritical = 0;
+const uint8_t Vertical = 0;
 const uint8_t Horizontal = 1;
 
 //time keeper for the delays and timers
@@ -21,9 +21,11 @@ volatile uint32_t waiting_car_start_time = 0;
 // defining the states
 typedef enum {				//TL:	1	2	3	4
     CAR_V_GREEN,		 	//		R	G	R	G
-    CAR_V2H_ORANGE,			// 		R	O	R	O
+    CAR_V2H_ORANGE1,		// 		R	O	R	O
+    CAR_V2H_ORANGE2,		// 		O	R	O	R
     CAR_H_GREEN,			//		G	R	G	R
-    CAR_H2V_ORANGE,			//		O	R	O	R
+    CAR_H2V_ORANGE1,		//		O	R	O	R
+	CAR_H2V_ORANGE2,		//		R	O	R	O
 } TrafficState2;
 
 // staring state
@@ -31,47 +33,49 @@ TrafficState2 lane_state = CAR_V_GREEN;
 
 
 void Car_StateMachine(){
-	uint8_t V_ACTIVE = ActiveCarOnLane(Veritical);
+	uint8_t V_ACTIVE = ActiveCarOnLane(Vertical);
 	uint8_t H_ACTIVE = ActiveCarOnLane(Horizontal);
 
 	switch(lane_state){
 
 		case CAR_V_GREEN:
+
 			SPIshow_state(Vgreen);
-
-
-
-			if (H_ACTIVE == 1 && waiting_car_start_time == 0) { //if there is a car on the horizontal lane start a waiting counter
+			//if there is a car on the horizontal lane start a waiting counter
+			if (H_ACTIVE == 1 && waiting_car_start_time == 0) {
 			        waiting_car_start_time = HAL_GetTick();
 			    }
-
-			else if (H_ACTIVE == 0) {							// if there is no car there reset the counter
+			// if there is no car there reset the counter
+			else if (H_ACTIVE == 0) {
 			        waiting_car_start_time = 0;
 			}
-
-			if ((V_ACTIVE == 0)&&(H_ACTIVE == 1)){				// if current lane is emty an there is a car waiting immeadaty switch so that lane can drive
+			// if current lane is emty and horiontal car is waiting immeadaty switch horizontal
+			if ((V_ACTIVE == 0)&&(H_ACTIVE == 1)){
 				Lane_start_time = HAL_GetTick();
 				waiting_car_start_time = 0;
-				lane_state = CAR_V2H_ORANGE;
+				lane_state = CAR_V2H_ORANGE1;
 			}
 
-			else if((H_ACTIVE == 1)){							// if there are cars on the other lane and the reddelay max has been surpassed switch lane
+			// if there are horizontal cars check if redDelayMax has been surpassed
+			else if((H_ACTIVE == 1)){
 
 				if (HAL_GetTick() - waiting_car_start_time >= (redDelayMax-orangeDelay)){
 					Lane_start_time = HAL_GetTick();
 					waiting_car_start_time = 0;
-					lane_state = CAR_V2H_ORANGE;
+					lane_state = CAR_V2H_ORANGE1;
 				}
 
 			}
-			else if((V_ACTIVE == 1)&&(H_ACTIVE == 0)){			// if there is no car waiting hold the light green untill there is a car waiting
+
+			// if no horizontal car is waiting reset the timer to halt a trassion from happening
+			else if((V_ACTIVE == 1)&&(H_ACTIVE == 0)){
 				Lane_start_time = HAL_GetTick();
 			}
-
-			else if((V_ACTIVE == 0)&&(H_ACTIVE == 0)){			// if there is no cars switch state after green delay
+			// if there is no cars what so ever change state after greenDelay
+			else if((V_ACTIVE == 0)&&(H_ACTIVE == 0)){
 				if (HAL_GetTick() - Lane_start_time >= (greenDelay-orangeDelay)){
 					Lane_start_time = HAL_GetTick();
-					lane_state = CAR_V2H_ORANGE;
+					lane_state = CAR_V2H_ORANGE1;
 				}
 
 			}
@@ -79,8 +83,17 @@ void Car_StateMachine(){
 
 
 
-		case CAR_V2H_ORANGE:
-			SPIshow_state(V2Horange);
+		case CAR_V2H_ORANGE1:
+			SPIshow_state(V2Horange1);
+			if (HAL_GetTick() - Lane_start_time >= orangeDelay){// BASIC ORANGE DELAY
+				Lane_start_time = HAL_GetTick();
+				lane_state = CAR_V2H_ORANGE2;
+			}
+
+			break;
+
+		case CAR_V2H_ORANGE2:
+			SPIshow_state(V2Horange2);
 			if (HAL_GetTick() - Lane_start_time >= orangeDelay){// BASIC ORANGE DELAY
 				Lane_start_time = HAL_GetTick();
 				lane_state = CAR_H_GREEN;
@@ -104,7 +117,7 @@ void Car_StateMachine(){
 			if ((H_ACTIVE == 0)&&(V_ACTIVE == 1)){
 				Lane_start_time = HAL_GetTick();
 				waiting_car_start_time = 0;
-				lane_state = CAR_H2V_ORANGE;
+				lane_state = CAR_H2V_ORANGE1;
 			}
 
 			else if((V_ACTIVE == 1)){
@@ -112,7 +125,7 @@ void Car_StateMachine(){
 				if (HAL_GetTick() - waiting_car_start_time >= (redDelayMax-orangeDelay)){
 					Lane_start_time = HAL_GetTick();
 					waiting_car_start_time = 0;
-					lane_state = CAR_H2V_ORANGE;
+					lane_state = CAR_H2V_ORANGE1;
 				}
 
 			}
@@ -123,14 +136,23 @@ void Car_StateMachine(){
 			else if((H_ACTIVE == 0)&&(V_ACTIVE == 0)){
 				if (HAL_GetTick() - Lane_start_time >= (greenDelay-orangeDelay)){
 					Lane_start_time = HAL_GetTick();
-					lane_state = CAR_H2V_ORANGE;
+					lane_state = CAR_H2V_ORANGE1;
 				}
 
 			}
 			break;
 
-		case CAR_H2V_ORANGE:
-			SPIshow_state(H2Vorange);
+		case CAR_H2V_ORANGE1:
+			SPIshow_state(H2Vorange1);
+			if (HAL_GetTick() - Lane_start_time >= orangeDelay){
+				Lane_start_time = HAL_GetTick();
+				lane_state = CAR_H2V_ORANGE2;
+			}
+
+			break;
+
+		case CAR_H2V_ORANGE2:
+			SPIshow_state(H2Vorange2);
 			if (HAL_GetTick() - Lane_start_time >= orangeDelay){
 				Lane_start_time = HAL_GetTick();
 				lane_state = CAR_V_GREEN;
@@ -146,7 +168,7 @@ void Car_StateMachine(){
 
 // helper funtion to check if there are any active cars on the chosen lane
 uint8_t ActiveCarOnLane (uint8_t Lane){
-	if(Lane == Veritical){
+	if(Lane == Vertical){
 		if((TL4_Car_var || TL2_Car_var) == 1 ){ // if car 2 OR 4 is on lane
 			return 1;
 

@@ -287,6 +287,7 @@ void StartVertialTask(void *argument)
 {
   /* USER CODE BEGIN StartVertialTask */
 	LightState Vcurrent = STATE_GREEN;
+	//take the semaphore at starup
 	osSemaphoreRelease(ImGreenNowHandle);
 	osSemaphoreAcquire(ImGreenNowHandle, osWaitForever);
 
@@ -296,39 +297,42 @@ void StartVertialTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  uint8_t V_ACTIVE = ActiveCarOnLane(Veritical);
+	  uint8_t V_ACTIVE = ActiveCarOnLane(Vertical);
 	  uint8_t H_ACTIVE = ActiveCarOnLane(Horizontal);
 
 	  switch(Vcurrent){
 
 	  case STATE_GREEN:
+		  //show the lights that represent the current state on the board
 	      memcpy(Shownstate, V_Green, 3);
 	      xTaskNotify(ActuatorTaskHandle, SHOW_EVT, eSetBits);
 
-	      // is there is a horizotal car star the redmax timer of there is any and if it leave reset the timer
+	      // if horizotal car arrives start the redmax timer
 	      if (H_ACTIVE == 1 && IsActive(RedMaxHandle) == 0) {
 	          osTimerStart(RedMaxHandle, pdMS_TO_TICKS(redDelayMax - 2* orangeDelay));
 	          osTimerStop(GreenHandle);
 	      }
+	      // if horizotal leaves arrives reset the redmax timer
 	      else if (H_ACTIVE == 0) {
 	          osTimerStop(RedMaxHandle);
 	      }
 
-	      // diffrent possble lane combinations
-	      if ((V_ACTIVE == 0) && (H_ACTIVE == 1)) {  // imeadiate state change stop all the timers
+		  // if current lane is emty and horiontal car is waiting immeadaty switch horizontal
+	      if ((V_ACTIVE == 0) && (H_ACTIVE == 1)) {
 	          osTimerStop(RedMaxHandle);
 	          osTimerStop(GreenHandle);
 	          Vcurrent = STATE_ORANGE_G2R;
 	      }
-	      else if ((V_ACTIVE == 1) && (H_ACTIVE == 0)) { // stay green forever so reset all the timers so it never triggers a state change
-	          osTimerStop(RedMaxHandle);
+	      // if no horizontal car is waiting reset the all timers to halt a transion from happening
+	      else if ((V_ACTIVE == 1) && (H_ACTIVE == 0)) {
 	          osTimerStop(GreenHandle);
 	      }
-	      else if ((V_ACTIVE == 0) && (H_ACTIVE == 0) && !IsActive(GreenHandle)) {// all empty start the greentimer
+	      // if there is no cars what so ever start greenDelay
+	      else if ((V_ACTIVE == 0) && (H_ACTIVE == 0) && !IsActive(GreenHandle)) {
 	          osTimerStart(GreenHandle, pdMS_TO_TICKS(greenDelay - 2* orangeDelay));
 	      }
 
-	      // Pedestrian button press immediately goes to pending
+	      // Pedestrian button press immediately go to STATE_PENDING
 	      if (PL2_switch_var == 1) {
 	          PL2_switch_var = 0;
 	          osTimerStop(RedMaxHandle);
@@ -353,21 +357,19 @@ void StartVertialTask(void *argument)
 
 
 	  case STATE_ORANGE_G2R:
-
+		  //show the lights that represent the current state on the board
 	      memcpy(Shownstate, V_Orange_G2R, 3);
 	      xTaskNotify(ActuatorTaskHandle, SHOW_EVT, eSetBits);
 
-
+	      //start timer
 	      if (!IsActive(V_OrangeHandle)) {
 	          osTimerStart(V_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
 	      }
-
+	      //wait for timer to finish
 	      xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
-
 	      if (events & V_ORANGE_EVT) {
 	    	  osTimerStop(V_OrangeHandle);
-	          Vcurrent = STATE_RED;               // Transition to RED
-	        // Give turn to other task
+	          Vcurrent = STATE_RED;
 	      }
 	  break;
 
@@ -375,13 +377,15 @@ void StartVertialTask(void *argument)
 
 
 	  case STATE_RED:
+		  //relase the semaphore so horizontal task can take over
 		  osSemaphoreRelease(ImGreenNowHandle);
           Vcurrent = STATE_ORANGE_R2G;
 		  osThreadYield();
+		  // wait for horizontal task to finish to resume the statemachine
           osSemaphoreAcquire(ImGreenNowHandle, osWaitForever);
 
 		  break;
-
+	  //this is the state it returns to when coming from horizontal task
 	  case STATE_ORANGE_R2G:
 
 		  xTaskNotifyStateClear(NULL);
@@ -403,6 +407,9 @@ void StartVertialTask(void *argument)
 
 		  break;
 
+
+		  //this state is basically all the trassion states combined into one, It ignors all the other timers and focusees on the pedestrian timers
+		  //this is due to that we pedestrian have the prioity
 	  case STATE_PENDING:
 
 
@@ -441,6 +448,8 @@ void StartVertialTask(void *argument)
 
 
 	      break;
+
+	      //eqivalent to the horzontal STATE_GREEN but only stays there for walkingDelay ms
 	  case STATE_PED_WALK:
 
 		  osTimerStop(ToggleTimerHandle);
@@ -471,8 +480,6 @@ void StartVertialTask(void *argument)
 
 	  }
 
-
-
   }
   /* USER CODE END StartVertialTask */
 
@@ -484,17 +491,21 @@ void StartVertialTask(void *argument)
 * @retval None
 */
 /* USER CODE END Header_StartHorizontalTask */
+
+
 void StartHorizontalTask(void *argument)
 {
   /* USER CODE BEGIN StartHorizontalTask */
   /* Infinite loop */
+
+	//first time aquireing semaphore will be after vertial state has reached red state that means we should pick up from STATE_ORANGE_R2G
 	osSemaphoreAcquire(ImGreenNowHandle, osWaitForever);
     LightState Hcurrent = STATE_ORANGE_R2G;
 	uint32_t events;// Start with its own R2G
   for(;;)
   {
-
-	  uint8_t V_ACTIVE = ActiveCarOnLane(Veritical);
+   // the following state machine is jsut a mirrored version of the vertal statemachine so i wont be commenting
+	  uint8_t V_ACTIVE = ActiveCarOnLane(Vertical);
 	  uint8_t H_ACTIVE = ActiveCarOnLane(Horizontal);
 
 	  switch(Hcurrent){
@@ -503,7 +514,7 @@ void StartHorizontalTask(void *argument)
 	      memcpy(Shownstate, H_Green, 3);
 	      xTaskNotify(ActuatorTaskHandle, SHOW_EVT, eSetBits);
 
-	      // is there is a horizotal car star the redmax timer of there is any and if it leave reset the timer
+
 	      if (V_ACTIVE == 1 && IsActive(RedMaxHandle) == 0) {
 	          osTimerStart(RedMaxHandle, pdMS_TO_TICKS(redDelayMax - 2* orangeDelay));
 	          osTimerStop(GreenHandle);
@@ -512,21 +523,21 @@ void StartHorizontalTask(void *argument)
 	          osTimerStop(RedMaxHandle);
 	      }
 
-	      // diffrent possble lane combinations
-	      if ((H_ACTIVE == 0) && (V_ACTIVE == 1)) {  // imeadiate state change stop all the timers
+
+	      if ((H_ACTIVE == 0) && (V_ACTIVE == 1)) {
 	          osTimerStop(RedMaxHandle);
 	          osTimerStop(GreenHandle);
 	          Hcurrent = STATE_ORANGE_G2R;
 	      }
-	      else if ((H_ACTIVE == 1) && (V_ACTIVE == 0)) { // stay green forever so reset all the timers so it never triggers a state change
+	      else if ((H_ACTIVE == 1) && (V_ACTIVE == 0)) {
 	          osTimerStop(RedMaxHandle);
 	          osTimerStop(GreenHandle);
 	      }
-	      else if ((H_ACTIVE == 0) && (V_ACTIVE == 0) && !IsActive(GreenHandle)) {// all empty start the greentimer
+	      else if ((H_ACTIVE == 0) && (V_ACTIVE == 0) && !IsActive(GreenHandle)) {
 	          osTimerStart(GreenHandle, pdMS_TO_TICKS(greenDelay - 2* orangeDelay));
 	      }
 
-	      // Pedestrian button press immediately goes to pending
+
 	      if (PL1_switch_var == 1) {
 	          PL1_switch_var = 0;
 	          osTimerStop(RedMaxHandle);
@@ -534,7 +545,7 @@ void StartHorizontalTask(void *argument)
 	          Hcurrent = STATE_PENDING;
 	      }
 
-	      // Check timer/event notifications without blocking
+
 	      BaseType_t notified = xTaskNotifyWait(0, 0xFFFFFFFF, &events, pdMS_TO_TICKS(10));
 	      if (notified == pdTRUE) {
 
@@ -574,14 +585,14 @@ void StartHorizontalTask(void *argument)
 
 
 	  case STATE_RED:
-          // Wait until horizontal finishes its green cycle
+
 
 		  osSemaphoreRelease(ImGreenNowHandle);
 
           Hcurrent = STATE_ORANGE_R2G;
 		  osThreadYield();
           osSemaphoreAcquire(ImGreenNowHandle, osWaitForever);
-          // Now vertical can do its own R2G logic
+
 
 
 		  break;
@@ -684,6 +695,10 @@ void StartHorizontalTask(void *argument)
 * @retval None
 */
 /* USER CODE END Header_StartActuatorTask */
+
+// this task has sole possession over the SPI comunication
+
+
 void StartActuatorTask(void *argument)
 {
   /* USER CODE BEGIN StartActuatorTask */
@@ -692,21 +707,21 @@ void StartActuatorTask(void *argument)
   for(;;)
   {
 	  xTaskNotifyWait(0,TOGGLE_EVT_1 | TOGGLE_EVT_2 | SHOW_EVT, &events, osWaitForever);
-
-
+	  //responsible for the toggling of PL1
 	  if (events & TOGGLE_EVT_1){
 		  Shownstate[2] ^= indicatorbit;
-
 	  }
+	  //responsible for the toggling of PL2
 	  if (events & TOGGLE_EVT_2){
 		  Shownstate[1] ^= indicatorbit;
 	  }
+	  // just falls trough so
 	  if (events & SHOW_EVT){
 
 	  }
-      osMutexAcquire(UART_MutexHandle, osWaitForever);
+
       SPIshow_state(Shownstate);
-      osMutexRelease(UART_MutexHandle);
+
   }
   /* USER CODE END StartActuatorTask */
 }

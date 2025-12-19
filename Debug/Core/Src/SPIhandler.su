@@ -1,2 +1,2 @@
-../Core/Src/SPIhandler.c:67:6:SPIinit	8	static
-../Core/Src/SPIhandler.c:74:6:SPIshow_state	16	static
+../Core/Src/SPIhandler.c:70:6:SPIinit	8	static
+../Core/Src/SPIhandler.c:77:6:SPIshow_state	16	static

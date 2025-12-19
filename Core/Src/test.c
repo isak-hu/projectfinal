@@ -75,11 +75,15 @@ void test_led_state2(){
 	while(1){
 		SPIshow_state(Vgreen);
 		HAL_Delay(1000);
-		SPIshow_state(V2Horange);
+		SPIshow_state(V2Horange1);
+		HAL_Delay(1000);
+		SPIshow_state(V2Horange2);
 		HAL_Delay(1000);
 		SPIshow_state(Hgreen);
 		HAL_Delay(1000);
-		SPIshow_state(H2Vorange);
+		SPIshow_state(H2Vorange1);
+		HAL_Delay(1000);
+		SPIshow_state(H2Vorange2);
 		HAL_Delay(1000);
 
 	}
@@ -98,7 +102,7 @@ void test_led_state3(){
 		HAL_Delay(2000);
 		SPIshow_state(H_Orange_G2R);
 		HAL_Delay(2000);
-		SPIshow_state(V_Orange_R2G);
+
 		HAL_Delay(2000);
 
 
@@ -108,7 +112,7 @@ void test_led_state3(){
 
 uint8_t OnLane = 0;
 void test_CarOnLane(){
-	 OnLane = ActiveCarOnLane(Veritical);// write what lane you want to test and KEY
+	 OnLane = ActiveCarOnLane(Vertical);// write what lane you want to test and KEY
 }
 
 // go to state

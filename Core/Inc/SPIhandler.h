@@ -21,9 +21,11 @@ extern uint8_t R2G[3];
 
 //for the task 2 leds
 extern uint8_t Vgreen[3];
-extern uint8_t V2Horange[3];
+extern uint8_t V2Horange1[3];
+extern uint8_t V2Horange2[3];
 extern uint8_t Hgreen[3];
-extern uint8_t H2Vorange[3];
+extern uint8_t H2Vorange1[3];
+extern uint8_t H2Vorange2[3];
 
 //for the task 3 leds
 extern uint8_t indicatorbit;

@@ -46,7 +46,8 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
  ../Core/Inc/SPIhandler.h ../Core/Inc/GPIOinputs.h \
  ../Core/Inc/TimeAndDelays.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
+ ../Core/Inc/UARThandler.h
 ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
@@ -100,3 +101,4 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 ../Core/Inc/TimeAndDelays.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
+../Core/Inc/UARThandler.h:

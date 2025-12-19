@@ -32,7 +32,7 @@ Core/Src/statemachine.o: ../Core/Src/statemachine.c \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h \
  ../Core/Inc/SPIhandler.h ../Core/Inc/GPIOinputs.h \
- ../Core/Inc/TimeAndDelays.h
+ ../Core/Inc/TimeAndDelays.h ../Core/Inc/UARThandler.h
 ../Core/Inc/statemachine.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
@@ -69,3 +69,4 @@ Core/Src/statemachine.o: ../Core/Src/statemachine.c \
 ../Core/Inc/SPIhandler.h:
 ../Core/Inc/GPIOinputs.h:
 ../Core/Inc/TimeAndDelays.h:
+../Core/Inc/UARThandler.h:

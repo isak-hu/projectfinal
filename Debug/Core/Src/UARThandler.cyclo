@@ -1,0 +1,2 @@
+../Core/Src/UARThandler.c:27:6:RuntimeConfig_init	1
+../Core/Src/UARThandler.c:35:6:HAL_UART_RxCpltCallback	13

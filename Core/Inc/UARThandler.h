@@ -9,6 +9,13 @@
 #define INC_UARTHANDLER_H_
 #include "main.h"
 
+void RuntimeConfig_init(void);
+
+
+extern uint16_t toggleFreq;
+extern uint16_t pedestrianDelay;
+extern uint16_t walkingDelay;
+extern uint16_t orangeDelay;
 
 
 

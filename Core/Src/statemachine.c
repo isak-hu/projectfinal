@@ -5,6 +5,7 @@
  *      Author: Yichao hu
  */
 #include "statemachine.h"
+#include "UARThandler.h"
 
 
 // pirvate variabel def BEGIN

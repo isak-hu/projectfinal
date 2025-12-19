@@ -30,6 +30,8 @@
 #include "test.h"
 #include "statemachine.h"
 #include "statemachine2.h"
+#include "UARThandler.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,6 +103,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   SPIinit();
   Car_Starting_positions();
+  RuntimeConfig_init();
 
 
 

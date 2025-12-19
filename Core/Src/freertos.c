@@ -31,6 +31,7 @@
 #include "statemachine2.h"
 #include <string.h>
 #include "timers.h"
+#include "UARThandler.h"
 
 
 /* USER CODE END Includes */
@@ -306,7 +307,7 @@ void StartVertialTask(void *argument)
 
 	      // is there is a horizotal car star the redmax timer of there is any and if it leave reset the timer
 	      if (H_ACTIVE == 1 && IsActive(RedMaxHandle) == 0) {
-	          osTimerStart(RedMaxHandle, pdMS_TO_TICKS(redDelayMax));
+	          osTimerStart(RedMaxHandle, pdMS_TO_TICKS(redDelayMax - 2* orangeDelay));
 	          osTimerStop(GreenHandle);
 	      }
 	      else if (H_ACTIVE == 0) {
@@ -324,7 +325,7 @@ void StartVertialTask(void *argument)
 	          osTimerStop(GreenHandle);
 	      }
 	      else if ((V_ACTIVE == 0) && (H_ACTIVE == 0) && !IsActive(GreenHandle)) {// all empty start the greentimer
-	          osTimerStart(GreenHandle, pdMS_TO_TICKS(greenDelay));
+	          osTimerStart(GreenHandle, pdMS_TO_TICKS(greenDelay - 2* orangeDelay));
 	      }
 
 	      // Pedestrian button press immediately goes to pending
@@ -404,20 +405,31 @@ void StartVertialTask(void *argument)
 
 	  case STATE_PENDING:
 
+
 		  toggle_evt_value =  TOGGLE_EVT_2;
 		   if (!IsActive(ToggleTimerHandle)) {
 		       osTimerStart(ToggleTimerHandle, pdMS_TO_TICKS(toggleFreq));
 		    }
 
 	      if (!IsActive(PedestrianHandle)) {
-	          osTimerStart(PedestrianHandle, pdMS_TO_TICKS(pedestrianDelay));
+	          osTimerStart(PedestrianHandle, pdMS_TO_TICKS(pedestrianDelay - 2 * orangeDelay));
 	      }
 	      xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
 
 	      if (events & PED_EVT) {
-	    	  memcpy(Shownstate, V_Orange_R2G, 3);
+	    	  memcpy(Shownstate, V_Orange_G2R, 3);
 		      if (!IsActive(V_OrangeHandle)) {
 		          osTimerStart(V_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+
+		      }
+	      }
+		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
+	      if (events & V_ORANGE_EVT) {
+	    	  memcpy(Shownstate, H_Orange_R2G, 3);
+		      if (!IsActive(V_OrangeHandle)) {
+		          osTimerStart(V_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+
+		      }
 
 		      }
 		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
@@ -426,9 +438,11 @@ void StartVertialTask(void *argument)
 	    	  Vcurrent = STATE_PED_WALK;
 
 		      }
-	      }
+
+
 	      break;
 	  case STATE_PED_WALK:
+
 		  osTimerStop(ToggleTimerHandle);
     	  memcpy(Shownstate, H_Green, 3);
     	  xTaskNotify(ActuatorTaskHandle,SHOW_EVT,eSetBits);
@@ -439,12 +453,19 @@ void StartVertialTask(void *argument)
 		  }
     	  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
     	  if (events & WALK_EVT) {
-		    	Vcurrent = STATE_ORANGE_R2G;
+        	  memcpy(Shownstate, H_Orange_G2R, 3);
+        	  xTaskNotify(ActuatorTaskHandle,SHOW_EVT,eSetBits);
+		      if (!IsActive(V_OrangeHandle)) {
+		          osTimerStart(V_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
 
+		      }
     	  }
+		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
+	      if (events & V_ORANGE_EVT) {
+	    	  osTimerStop(V_OrangeHandle);
+	    	  Vcurrent = STATE_ORANGE_R2G;
 
-
-
+		      }
 		  break;
 	  }
 
@@ -484,7 +505,7 @@ void StartHorizontalTask(void *argument)
 
 	      // is there is a horizotal car star the redmax timer of there is any and if it leave reset the timer
 	      if (V_ACTIVE == 1 && IsActive(RedMaxHandle) == 0) {
-	          osTimerStart(RedMaxHandle, pdMS_TO_TICKS(redDelayMax));
+	          osTimerStart(RedMaxHandle, pdMS_TO_TICKS(redDelayMax - 2* orangeDelay));
 	          osTimerStop(GreenHandle);
 	      }
 	      else if (V_ACTIVE == 0) {
@@ -502,7 +523,7 @@ void StartHorizontalTask(void *argument)
 	          osTimerStop(GreenHandle);
 	      }
 	      else if ((H_ACTIVE == 0) && (V_ACTIVE == 0) && !IsActive(GreenHandle)) {// all empty start the greentimer
-	          osTimerStart(GreenHandle, pdMS_TO_TICKS(greenDelay));
+	          osTimerStart(GreenHandle, pdMS_TO_TICKS(greenDelay - 2* orangeDelay));
 	      }
 
 	      // Pedestrian button press immediately goes to pending
@@ -596,14 +617,24 @@ void StartHorizontalTask(void *argument)
 		    }
 
 	      if (!IsActive(PedestrianHandle)) {
-	          osTimerStart(PedestrianHandle, pdMS_TO_TICKS(pedestrianDelay));
+	          osTimerStart(PedestrianHandle, pdMS_TO_TICKS(pedestrianDelay - 2 * orangeDelay));
 	      }
 	      xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
 
 	      if (events & PED_EVT) {
-	    	  memcpy(Shownstate, H_Orange_R2G, 3);
+	    	  memcpy(Shownstate, H_Orange_G2R, 3);
 		      if (!IsActive(H_OrangeHandle)) {
 		          osTimerStart(H_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+
+		      }
+	      }
+		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
+	      if (events & H_ORANGE_EVT) {
+	    	  memcpy(Shownstate, V_Orange_R2G, 3);
+		      if (!IsActive(H_OrangeHandle)) {
+		          osTimerStart(H_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
+
+		      }
 
 		      }
 		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
@@ -612,7 +643,8 @@ void StartHorizontalTask(void *argument)
 	    	  Hcurrent = STATE_PED_WALK;
 
 		      }
-	      }
+
+
 	      break;
 	  case STATE_PED_WALK:
 
@@ -626,12 +658,19 @@ void StartHorizontalTask(void *argument)
 		  }
     	  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
     	  if (events & WALK_EVT) {
-		    	Hcurrent = STATE_ORANGE_R2G;
+        	  memcpy(Shownstate, V_Orange_G2R, 3);
+        	  xTaskNotify(ActuatorTaskHandle,SHOW_EVT,eSetBits);
+		      if (!IsActive(H_OrangeHandle)) {
+		          osTimerStart(H_OrangeHandle, pdMS_TO_TICKS(orangeDelay));
 
+		      }
     	  }
+		  xTaskNotifyWait(0, 0xFFFFFFFF, &events, osWaitForever);
+	      if (events & H_ORANGE_EVT) {
+	    	  osTimerStop(H_OrangeHandle);
+	    	  Hcurrent = STATE_ORANGE_R2G;
 
-
-
+		      }
 		  break;
 	  }
   }

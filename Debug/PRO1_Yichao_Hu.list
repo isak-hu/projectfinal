@@ -1,5 +1,5 @@
 
-projectfinal.elf:     file format elf32-littlearm
+PRO1_Yichao_Hu.elf:     file format elf32-littlearm
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
